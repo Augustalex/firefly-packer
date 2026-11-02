@@ -6,7 +6,6 @@ game directly and keeps saves outside the download folder.
 
 - Windows x64 ZIP with the official emulator and a batch launcher.
 - macOS 11+ app supporting Apple Silicon and Intel, with an optional custom icon.
-- Optional Developer ID signing, Apple notarization, and ticket stapling.
 - Original ROM ZIP, package checksums, and emulator source/license notices.
 
 ## Requirements
@@ -64,55 +63,6 @@ cache. Emulator version 0.15.0 and upstream archive SHA-256 hashes are pinned in
 Windows players extract the whole ZIP and open `Play my-game.bat`. Mac players
 open `My Game.app`. Both archives contain an itch app launch action and a
 README containing the configured keyboard controls.
-
-## How it works
-
-The script imports your ROM into a temporary Firefly filesystem to obtain clean
-initial config and stats. It packages only the ROM and fresh defaults, not your
-developer save data. Launchers preserve existing config/saves and refresh the ROM.
-Saves are stored in `%LOCALAPPDATA%\my-game` on Windows and
-`~/Library/Application Support/my-game` on macOS. Choose a unique, stable slug
-and retain it between releases to preserve the save location. If migrating an
-existing release, set `data_folder` to its existing folder name (for example,
-`MyGame`) to preserve saves independently of the output ZIP slug.
-
-For Windows, the official x64 emulator binary is downloaded and hash-checked.
-For macOS, the emulator source is hash-checked, patched to accept `--title`, and
-built for `aarch64-apple-darwin` and `x86_64-apple-darwin`. Apple's `lipo -create`
-combines these into a universal executable. The small Objective-C launcher is
-also compiled for both architectures. No game source is converted to native code;
-the bundled emulator runs the same WebAssembly ROM on both platforms.
-
-## Sign and notarize the Mac app
-
-Without a signing identity the app is ad hoc signed for local testing. That is
-not an Apple-notarized distribution build.
-
-For distribution, use your own installed Developer ID Application certificate:
-
-```sh
-export FIREFLY_PACKER_SIGN_IDENTITY='Developer ID Application: Your Company (TEAMID)'
-python3 firefly_packer.py --config firefly-packer.toml --target macos
-```
-
-Signing uses hardened runtime and, for Developer ID signatures, a secure
-timestamp. To also submit the signed app to Apple, use an existing notarytool
-Keychain profile:
-
-```sh
-python3 firefly_packer.py --config firefly-packer.toml --target macos \
-  --notarize-profile your-keychain-profile
-```
-
-This option uploads the app to Apple and waits for the result. After acceptance,
-the script staples and validates the ticket, checks Gatekeeper, and repacks the
-ZIP using `ditto` to preserve macOS metadata. If rejected, the command fails;
-inspect Apple's submission log before distributing the output.
-
-Certificates, private keys, passwords, and Apple account credentials do not belong
-in this repository or config. Manage notarization credentials with Apple's
-`xcrun notarytool store-credentials`. Rebuilds require fresh signing/notarization.
-See [Apple's notarization documentation](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
 
 ## Verification
 
