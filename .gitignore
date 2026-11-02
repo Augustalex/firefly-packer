@@ -1,0 +1,16 @@
+.cache/
+dist/
+build/
+__pycache__/
+*.pyc
+*.zip
+*.tgz
+*.tar.gz
+*.icns
+*.p12
+*.p8
+*.pem
+.env
+.env.*
+firefly-packer.toml
+.DS_Store

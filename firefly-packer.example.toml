@@ -1,0 +1,18 @@
+name = "My Game"
+slug = "my-game"
+# Must match the ROM's author_id.app_id from firefly.toml.
+app_id = "your-name.my-game"
+version = "0.1.0"
+build = "1"
+bundle_id = "com.example.my-game"
+# Paths are relative to this config file, not the terminal's current directory.
+rom = "game.zip"
+# Optional macOS app icon. Omit this line to use the system's default app icon.
+# icon = "icon.icns"
+scale = 4
+controls = """
+Arrow keys: move.
+A/S/Z/X: game buttons.
+Enter: menu.
+Escape: close.
+"""

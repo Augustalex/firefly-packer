@@ -1,0 +1,56 @@
+--- a/src/cli_args.rs
++++ b/src/cli_args.rs
+@@ -1,3 +1,4 @@
++// Modified for firefly-packer on 2026-11-02: optional window title.
+ use crate::error::Error;
+ use clap::Parser;
+ use std::net::IpAddr;
+@@ -23,6 +24,10 @@
+     /// If not specified, will start launcher (if installed) or the latest installed app.
+     #[arg(long, default_value = None)]
+     pub id: Option<String>,
++
++    /// Override the emulator window title.
++    #[arg(long)]
++    pub title: Option<String>,
+ 
+     /// The TCP IP address where to listen for serial events.
+     #[arg(long, default_value = None)]
+--- a/src/core.rs
++++ b/src/core.rs
+@@ -1,3 +1,4 @@
++// Modified for firefly-packer on 2026-11-02: optional window title.
+ use crate::error::Error;
+ use crate::*;
+ use crate::{audio::spawn_audio_thread, display::Display};
+@@ -40,7 +41,7 @@
+     }
+ 
+     let opts = args.options()?;
+-    let mut window = minifb::Window::new("Firefly emulator", WIDTH, HEIGHT, opts)?;
++    let mut window = minifb::Window::new(args.title.as_deref().unwrap_or("Firefly emulator"), WIDTH, HEIGHT, opts)?;
+     let next = match &args.id {
+         Some(full_id) => NextApp::ID(FullID::try_from(full_id.as_str())?),
+         None => NextApp::Launcher,
+@@ -61,7 +62,7 @@
+         io_partition: 0,
+     });
+     loop {
+-        config = match run_app(&mut window, config, !args.no_keyboard)? {
++        config = match run_app(&mut window, config, !args.no_keyboard, args.title.as_deref())? {
+             Some(config) => config,
+             None => break,
+         };
+@@ -73,8 +74,11 @@
+     window: &mut minifb::Window,
+     mut config: Config<'a>,
+     keyboard: bool,
++    custom_title: Option<&str>,
+ ) -> Result<Option<Config<'a>>, Error> {
+-    let title = if let NextApp::ID(id) = &config.next {
++    let title = if let Some(title) = custom_title {
++        title.to_string()
++    } else if let NextApp::ID(id) = &config.next {
+         format!("Firefly Emulator: {}.{}", id.author(), id.app())
+     } else {
+         "Firefly Emulator".to_string()
