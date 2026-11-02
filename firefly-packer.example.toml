@@ -9,6 +9,8 @@ bundle_id = "com.example.my-game"
 rom = "game.zip"
 # Optional macOS app icon. Omit this line to use the system's default app icon.
 # icon = "icon.icns"
+# Optional: preserve an existing save-folder name when migrating a release.
+# data_folder = "MyGame"
 scale = 4
 controls = """
 Arrow keys: move.

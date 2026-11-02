@@ -192,6 +192,7 @@ class Game:
     bundle_id: str
     rom: Path
     controls: str
+    data_folder: str
     icon: Path | None = None
     scale: int = 4
 
@@ -199,7 +200,7 @@ class Game:
 def load_game(path):
     path = Path(path).resolve()
     config = tomllib.loads(path.read_text())
-    allowed = {'name', 'slug', 'app_id', 'version', 'build', 'bundle_id', 'rom', 'controls', 'icon', 'scale'}
+    allowed = {'name', 'slug', 'app_id', 'version', 'build', 'bundle_id', 'rom', 'controls', 'icon', 'scale', 'data_folder'}
     unknown = set(config) - allowed
     if unknown:
         raise ValueError(f"Unknown config keys: {', '.join(sorted(unknown))}")
@@ -236,11 +237,14 @@ def load_game(path):
         icon = (path.parent / icon).resolve()
         if not icon.is_file() or icon.suffix.lower() != '.icns':
             raise ValueError('icon must point to an existing .icns file')
+    data_folder = config.get('data_folder', slug)
+    if not isinstance(data_folder, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]*', data_folder):
+        raise ValueError('data_folder must contain ASCII letters, digits, and hyphens')
     controls = config.get('controls', 'Arrow keys: directional input.\nA/S/Z/X: buttons.\nEnter: menu.\nEscape: close.\n')
     if not isinstance(controls, str):
         raise ValueError('controls must be a string')
     return Game(config['name'], slug, config['app_id'], config['version'], build,
-                bundle_id, rom, controls, icon, scale)
+                bundle_id, rom, controls, data_folder, icon, scale)
 
 
 def windows_launcher(game):
@@ -248,7 +252,7 @@ def windows_launcher(game):
     return f'''@echo off
 setlocal
 title {game.slug}
-set "FIREFLY_DATA=%LOCALAPPDATA%\\{game.slug}"
+set "FIREFLY_DATA=%LOCALAPPDATA%\\{game.data_folder}"
 if not exist "%SystemRoot%\\System32\\vcruntime140.dll" (
   echo This game needs the Microsoft Visual C++ x64 runtime.
   echo Download from https://aka.ms/vc14/vc_redist.x64.exe then try again.
@@ -357,7 +361,7 @@ def build_mac(game, stage, roms, initial, source, license_file, profile):
         'CFBundleName': game.name, 'CFBundleDisplayName': game.name, 'CFBundlePackageType': 'APPL',
         'CFBundleShortVersionString': game.version, 'CFBundleVersion': game.build,
         'LSMinimumSystemVersion': '11.0', 'NSHighResolutionCapable': True,
-        'FireflyAppID': game.app_id, 'FireflyDataFolder': game.slug, 'FireflyScale': game.scale,
+        'FireflyAppID': game.app_id, 'FireflyDataFolder': game.data_folder, 'FireflyScale': game.scale,
     }
     if game.icon:
         shutil.copy2(game.icon, resources / 'Game.icns')

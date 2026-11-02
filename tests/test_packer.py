@@ -35,6 +35,13 @@ class PackerTests(unittest.TestCase):
                 with self.subTest(field=field, value=value), self.assertRaises(ValueError):
                     self.game(**{field: value})
 
+    def test_migrated_save_folder(self):
+        game = self.game(data_folder='ExistingGame')
+        self.assertEqual(game.data_folder, 'ExistingGame')
+        self.assertIn(r'%LOCALAPPDATA%\ExistingGame', packer.windows_launcher(game))
+        with self.assertRaises(ValueError):
+            self.game(data_folder='../escape')
+
     def test_rejects_invalid_mac_metadata(self):
         for key, value in [('name', '../Game'), ('name', 'Game\nFake'), ('version', '1.0-beta'),
                            ('build', '-1'), ('bundle_id', 'single'), ('scale', 0), ('scale', True)]:

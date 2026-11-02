@@ -72,7 +72,9 @@ initial config and stats. It packages only the ROM and fresh defaults, not your
 developer save data. Launchers preserve existing config/saves and refresh the ROM.
 Saves are stored in `%LOCALAPPDATA%\my-game` on Windows and
 `~/Library/Application Support/my-game` on macOS. Choose a unique, stable slug
-and retain it between releases to preserve the save location.
+and retain it between releases to preserve the save location. If migrating an
+existing release, set `data_folder` to its existing folder name (for example,
+`MyGame`) to preserve saves independently of the output ZIP slug.
 
 For Windows, the official x64 emulator binary is downloaded and hash-checked.
 For macOS, the emulator source is hash-checked, patched to accept `--title`, and
